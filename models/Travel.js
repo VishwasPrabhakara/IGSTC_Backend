@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const TravelSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    arrivalDate: { type: String, required: true },
-    arrivalTime: { type: String, required: true },
-    departureDate: { type: String, required: true },
-    departureTime: { type: String, required: true },
-    daysOfStay: { type: Number, required: true },
-    fieldTrip: { type: Boolean, required: true }
+const TravelDetailsSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    arrivalDate: { type: String, default: null }, 
+    arrivalTime: { type: String, default: null },
+    departureDate: { type: String, default: null },
+    departureTime: { type: String, default: null },
+    daysOfStay: { type: Number, default: 0 },
+    fieldTrip: { type: Boolean, default: false }
 });
 
-module.exports = mongoose.model("Travel", TravelSchema);
+module.exports = mongoose.model("TravelDetails", TravelDetailsSchema);
