@@ -4,7 +4,7 @@ require("dotenv").config();
 
 // Load the User model
 const User = require("./models/User");
-const TravelDetails = require("./models/Travel");
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -71,20 +71,7 @@ async function addUsers() {
             await newUser.save();
             console.log(`✅ User ${user.username} added successfully!`);
 
-            // Create travel details object for each user
-            const newTravelDetails = new TravelDetails({
-                username: user.username,
-                arrivalDate: null, // Use null instead of ""
-                arrivalTime: null,
-                departureDate: null,
-                departureTime: null,
-                daysOfStay: 0,
-                fieldTrip: false
-            });
-
-            await newTravelDetails.save();
-            console.log(`✅ Travel details created for ${user.username}`);
-        }
+            
     } catch (err) {
         console.error("❌ Error adding users or travel details:", err);
     } finally {
