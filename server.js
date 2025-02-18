@@ -6,7 +6,7 @@ require("dotenv").config();
 const app = express();
 
 // Enable CORS for the frontend on Vercel
-const FRONTEND_URL = "https://igstc-bilateral-workshop-2025.vercel.app";
+const FRONTEND_URL = "https://igstcbilateralworkshop2025.in/";
 
 app.use(cors({
     origin: FRONTEND_URL, // Allow requests only from your Vercel frontend
