@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const TravelSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userName: { type: String, required: true }, // ✅ Store user's name
     arrivalDate: { type: String, required: true },
     arrivalTime: { type: String, required: true },
     departureDate: { type: String, required: true },

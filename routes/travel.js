@@ -1,13 +1,21 @@
 const express = require("express");
 const Travel = require("../models/Travel");
+const User = require("../models/User"); // Import the User model
 const router = express.Router();
 
-// ✅ Save or Update Travel Details
+// ✅ Save or Update Travel Details with User's Name
 router.post("/submit", async (req, res) => {
     try {
         const { userId, arrivalDate, arrivalTime, departureDate, departureTime, daysOfStay, fieldTrip, residentialAddress } = req.body;
 
-        let travel = await Travel.findOne({ userId }); // Check if user already has travel details
+        // ✅ Fetch user details from the Users collection
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        let travel = await Travel.findOne({ userId });
 
         if (travel) {
             // ✅ Update existing record
@@ -18,10 +26,12 @@ router.post("/submit", async (req, res) => {
             travel.daysOfStay = daysOfStay;
             travel.fieldTrip = fieldTrip;
             travel.residentialAddress = residentialAddress;
+            travel.userName = user.name; // ✅ Save the user's name
         } else {
             // ✅ Create new record
             travel = new Travel({
                 userId,
+                userName: user.name, // ✅ Save the user's name
                 arrivalDate,
                 arrivalTime,
                 departureDate,
@@ -40,13 +50,10 @@ router.post("/submit", async (req, res) => {
     }
 });
 
-// ✅ Fetch Travel Details with User Name
+// ✅ Fetch Travel Details with User's Name
 router.get("/travels", async (req, res) => {
     try {
-        const travelRecords = await Travel.find()
-            .populate("userId", "name") // Fetch 'name' from User collection
-            .exec();
-
+        const travelRecords = await Travel.find().exec();
         res.json(travelRecords);
     } catch (error) {
         console.error("Error fetching travel details:", error);
