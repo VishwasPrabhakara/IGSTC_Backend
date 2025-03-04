@@ -14,7 +14,7 @@ const S3_BUCKET_NAME = "conference-file-storage";
 // Get list of available PPTs from AWS S3
 router.get("/ppts", async (req, res) => {
     try {
-        const params = { Bucket: S3_BUCKET_NAME, Prefix: "PPT/" };
+        const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
         const data = await s3.listObjectsV2(params).promise();
 
         const ppts = data.Contents.map(obj => ({
