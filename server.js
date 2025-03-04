@@ -26,7 +26,7 @@ connectDB();
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/travel", require("./routes/travel"));
 app.use("/api/upload", require("./routes/upload"));
-app.use("/api/downloads", downloadsRoutes);
+app.use("/api/downloads", require("./routes/downloads"));
 
 // Start server
 const PORT = process.env.PORT || 5000;
