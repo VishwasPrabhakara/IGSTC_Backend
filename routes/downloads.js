@@ -9,9 +9,9 @@ const s3 = new AWS.S3({
     region: process.env.AWS_REGION
 });
 
-const S3_BUCKET_NAME = "conference-file-storage"; // Replace with your bucket name
+const S3_BUCKET_NAME = "conference-file-storage"; // Your actual S3 bucket name
 
-// Fetch all PPT files from "ppts/" folder
+// ✅ Ensure this route is defined correctly
 router.get("/ppts", async (req, res) => {
     try {
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
@@ -21,7 +21,6 @@ router.get("/ppts", async (req, res) => {
             return res.status(404).json({ message: "No PPTs found in S3 bucket" });
         }
 
-        // Extract filenames from "ppts/" directory
         const ppts = data.Contents.map(file => ({
             name: file.Key.replace("ppts/", ""), // Remove "ppts/" prefix from file names
             url: `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.Key}`
