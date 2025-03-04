@@ -17,13 +17,13 @@ router.get("/ppts", async (req, res) => {
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
         const data = await s3.listObjectsV2(params).promise();
 
+        if (!data.Contents || data.Contents.length === 0) {
+            return res.status(404).json({ message: "No PPTs found in S3 bucket" });
+        }
+
         const ppts = data.Contents.map(obj => ({
             name: obj.Key.split("/").pop(),
-            url: s3.getSignedUrl("getObject", {
-                Bucket: S3_BUCKET_NAME,
-                Key: obj.Key,
-                Expires: 3600, // Link expires in 1 hour
-            }),
+            url: `https://${S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${obj.Key}`
         }));
 
         res.json({ ppts });
@@ -32,6 +32,7 @@ router.get("/ppts", async (req, res) => {
         res.status(500).json({ error: "Failed to retrieve PPTs" });
     }
 });
+
 
 // Get the event photos download link (Shared external link)
 router.get("/photos", (req, res) => {

@@ -11,10 +11,11 @@ const app = express();
 const FRONTEND_URL = "https://igstcbilateralworkshop2025.in";
 
 app.use(cors({
-    origin: FRONTEND_URL, // Allow requests only from your Vercel frontend
+    origin: "*", // Allow requests only from your Vercel frontend
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
+
 
 // Middleware
 app.use(express.json());
