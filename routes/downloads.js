@@ -23,9 +23,9 @@ router.get("/ppts", async (req, res) => {
 
         // ✅ Filter out the "ppts/" folder entry and list only actual files
         const ppts = data.Contents
-            .filter(file => file.Key !== "ppts/") // Remove empty folder
+            .filter(file => file.Key !== "ppts/") // Ignore empty folder
             .map(file => ({
-                name: file.Key.replace("ppts/", ""), // Remove "ppts/" prefix from filename
+                name: file.Key.replace("ppts/", ""), // Remove folder prefix
                 url: s3.getSignedUrl("getObject", { 
                     Bucket: S3_BUCKET_NAME, 
                     Key: file.Key, 
@@ -37,6 +37,18 @@ router.get("/ppts", async (req, res) => {
     } catch (error) {
         console.error("❌ Error fetching PPTs:", error);
         res.status(500).json({ error: "Failed to retrieve PPTs" });
+    }
+});
+
+// ✅ Route to Get Downloadable Event Photos Link
+router.get("/photos", (req, res) => {
+    try {
+        const photoDownloadURL = "https://indianinstituteofscience-my.sharepoint.com/personal/rohanhs_iisc_ac_in/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Frohanhs%5Fiisc%5Fac%5Fin%2FDocuments%2FIGSTC%5F2025%5FIISc%5FLNR&ga=1"; // Replace with actual photo link
+
+        res.json({ photos_url: photoDownloadURL });
+    } catch (error) {
+        console.error("❌ Error fetching photo download link:", error);
+        res.status(500).json({ error: "Failed to retrieve photo download link" });
     }
 });
 
