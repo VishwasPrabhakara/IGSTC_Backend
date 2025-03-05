@@ -24,6 +24,11 @@ router.get("/ppts", async (req, res) => {
         // ✅ Filter out the "ppts/" folder entry and list only actual files
         const ppts = data.Contents
             .filter(file => file.Key !== "ppts/") // Ignore empty folder
+            .sort((a, b) => {
+                const numA = parseInt(a.Key.match(/^\d+/)?.[0]) || 9999; // Extract number or default high
+                const numB = parseInt(b.Key.match(/^\d+/)?.[0]) || 9999;
+                return numA - numB; // Sort numerically
+            }) // Sort by last modified
             .map(file => ({
                 name: file.Key.replace("ppts/", ""), // Remove folder prefix
                 url: s3.getSignedUrl("getObject", { 
