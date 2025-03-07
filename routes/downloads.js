@@ -1,6 +1,10 @@
 const express = require("express");
+const cors = require("cors");
 const AWS = require("aws-sdk");
 const router = express.Router();
+
+// Enable CORS
+router.use(cors());
 
 // AWS S3 Configuration
 const s3 = new AWS.S3({
@@ -14,6 +18,8 @@ const S3_BUCKET_NAME = "conference-file-storage"; // Your actual S3 bucket name
 // ✅ Fetch & Sort PPTs from S3
 router.get("/ppts", async (req, res) => {
     try {
+        res.setHeader("Access-Control-Allow-Origin", "*"); // Enable CORS for frontend access
+
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
         const data = await s3.listObjectsV2(params).promise();
 
@@ -49,6 +55,8 @@ router.get("/ppts", async (req, res) => {
 // ✅ Fetch & Sort Field Trip Photos from S3
 router.get("/field-trip-photos", async (req, res) => {
     try {
+        res.setHeader("Access-Control-Allow-Origin", "*"); // Enable CORS for frontend access
+
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "field-trip-photos/" };
         const data = await s3.listObjectsV2(params).promise();
 
@@ -56,7 +64,7 @@ router.get("/field-trip-photos", async (req, res) => {
             return res.status(404).json({ message: "No Field Trip Photos found in S3 bucket" });
         }
 
-        // ✅ Sorting by filename
+        // ✅ Sorting by filename naturally (ensuring numeric order)
         const photos = data.Contents
             .filter(file => file.Key !== "field-trip-photos/") // Ignore folder entry
             .sort((a, b) => a.Key.localeCompare(b.Key, undefined, { numeric: true }))
