@@ -9,9 +9,9 @@ const s3 = new AWS.S3({
     region: process.env.AWS_REGION
 });
 
-const S3_BUCKET_NAME = "conference-file-storage"; // Your actual bucket name
+const S3_BUCKET_NAME = "conference-file-storage"; // Your actual S3 bucket name
 
-// ✅ Fetch list of all PPTs from S3 (Sorted by Number in Filename)
+// ✅ Fetch & Sort PPTs from S3
 router.get("/ppts", async (req, res) => {
     try {
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
@@ -21,23 +21,21 @@ router.get("/ppts", async (req, res) => {
             return res.status(404).json({ message: "No PPTs found in S3 bucket" });
         }
 
-        // ✅ Sort by Number Prefix (if exists), otherwise by LastModified
+        // ✅ Sorting by number in filename
+        const extractNumber = (filename) => {
+            const match = filename.match(/^(\d+)\./); // Extract leading number
+            return match ? parseInt(match[1]) : Infinity;
+        };
+
         const ppts = data.Contents
-            .filter(file => file.Key !== "ppts/") // Ignore empty folder entry
-            .sort((a, b) => {
-                const extractNumber = (filename) => {
-                    const match = filename.match(/^(\d+)\./); // Extract number before first dot
-                    return match ? parseInt(match[1]) : Infinity; // Sort non-numbered files last
-                };
-                
-                return extractNumber(a.Key) - extractNumber(b.Key);
-            })
+            .filter(file => file.Key !== "ppts/") // Ignore folder entry
+            .sort((a, b) => extractNumber(a.Key) - extractNumber(b.Key))
             .map(file => ({
-                name: file.Key.replace("ppts/", ""), // Remove "ppts/" prefix
+                name: file.Key.replace("ppts/", ""), // Remove folder prefix
                 url: s3.getSignedUrl("getObject", { 
                     Bucket: S3_BUCKET_NAME, 
                     Key: file.Key, 
-                    Expires: 3600 // Signed URL expires in 1 hour
+                    Expires: 21600 // Signed URL expires in 6 hours
                 })
             }));
 
@@ -48,7 +46,7 @@ router.get("/ppts", async (req, res) => {
     }
 });
 
-// ✅ Fetch list of all Field Trip Photos from S3
+// ✅ Fetch & Sort Field Trip Photos from S3
 router.get("/field-trip-photos", async (req, res) => {
     try {
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "field-trip-photos/" };
@@ -58,15 +56,16 @@ router.get("/field-trip-photos", async (req, res) => {
             return res.status(404).json({ message: "No Field Trip Photos found in S3 bucket" });
         }
 
-        // ✅ Generate Signed URLs for all photos
+        // ✅ Sorting by filename
         const photos = data.Contents
-            .filter(file => file.Key !== "field-trip-photos/") // Ignore empty folder entry
+            .filter(file => file.Key !== "field-trip-photos/") // Ignore folder entry
+            .sort((a, b) => a.Key.localeCompare(b.Key, undefined, { numeric: true }))
             .map(file => ({
-                name: file.Key.replace("field-trip-photos/", ""), // Remove "field-trip-photos/" prefix
+                name: file.Key.replace("field-trip-photos/", ""), // Remove folder prefix
                 url: s3.getSignedUrl("getObject", { 
                     Bucket: S3_BUCKET_NAME, 
                     Key: file.Key, 
-                    Expires: 3600 // Signed URL expires in 1 hour
+                    Expires: 21600 // Signed URL expires in 6 hours
                 })
             }));
 
