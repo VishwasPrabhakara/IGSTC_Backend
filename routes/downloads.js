@@ -24,6 +24,12 @@ router.use((req, res, next) => {
     next();
 });
 
+// ✅ Utility Function: Extract Numeric Order from Filenames
+const extractNumber = (filename) => {
+    const match = filename.match(/^(\d+)[._-]?/); // Supports "1.", "1-", or "1_"
+    return match ? parseInt(match[1], 10) : Infinity;
+};
+
 // ✅ Fetch & Sort PPTs from S3
 router.get("/ppts", async (req, res) => {
     try {
@@ -31,18 +37,12 @@ router.get("/ppts", async (req, res) => {
         const data = await s3.listObjectsV2(params).promise();
 
         if (!data.Contents || data.Contents.length === 0) {
-            return res.status(404).json({ message: "No PPTs found in S3 bucket" });
+            return res.json({ ppts: [], message: "No PPTs found in S3 bucket" });
         }
-
-        // ✅ Sorting by number in filename
-        const extractNumber = (filename) => {
-            const match = filename.match(/^(\d+)\./); // Extract leading number
-            return match ? parseInt(match[1]) : Infinity;
-        };
 
         const ppts = data.Contents
             .filter(file => file.Key !== "ppts/") // Ignore folder entry
-            .sort((a, b) => extractNumber(a.Key) - extractNumber(b.Key))
+            .sort((a, b) => extractNumber(a.Key) - extractNumber(b.Key)) // Natural sorting
             .map(file => ({
                 name: file.Key.replace("ppts/", ""), // Remove folder prefix
                 url: s3.getSignedUrl("getObject", { 
@@ -66,13 +66,12 @@ router.get("/field-trip-photos", async (req, res) => {
         const data = await s3.listObjectsV2(params).promise();
 
         if (!data.Contents || data.Contents.length === 0) {
-            return res.status(404).json({ message: "No Field Trip Photos found in S3 bucket" });
+            return res.json({ photos: [], message: "No Field Trip Photos found in S3 bucket" });
         }
 
-        // ✅ Sorting by filename naturally (ensuring numeric order)
         const photos = data.Contents
             .filter(file => file.Key !== "field-trip-photos/") // Ignore folder entry
-            .sort((a, b) => a.Key.localeCompare(b.Key, undefined, { numeric: true }))
+            .sort((a, b) => a.Key.localeCompare(b.Key, undefined, { numeric: true })) // Natural sorting
             .map(file => ({
                 name: file.Key.replace("field-trip-photos/", ""), // Remove folder prefix
                 url: s3.getSignedUrl("getObject", { 
