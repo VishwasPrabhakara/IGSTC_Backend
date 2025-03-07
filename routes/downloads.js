@@ -48,4 +48,30 @@ router.get("/ppts", async (req, res) => {
     }
 });
 
+// ✅ Route to Fetch Field Trip Photos from S3
+router.get("/field-trip-photos", async (req, res) => {
+    try {
+        const params = { Bucket: S3_BUCKET_NAME, Prefix: "field-trip/" };
+        const data = await s3.listObjectsV2(params).promise();
+
+        if (!data.Contents || data.Contents.length === 0) {
+            return res.status(404).json({ message: "No Field Trip Photos found" });
+        }
+
+        // ✅ Extract Image URLs
+        const photos = data.Contents.map(file => ({
+            url: s3.getSignedUrl("getObject", { 
+                Bucket: S3_BUCKET_NAME, 
+                Key: file.Key, 
+                Expires: 3600 
+            })
+        }));
+
+        res.json({ photos });
+    } catch (error) {
+        console.error("❌ Error fetching Field Trip Photos:", error);
+        res.status(500).json({ error: "Failed to retrieve Field Trip Photos" });
+    }
+});
+
 module.exports = router;
