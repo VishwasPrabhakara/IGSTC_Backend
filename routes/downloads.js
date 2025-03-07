@@ -30,13 +30,14 @@ const extractNumber = (filename) => {
     return match ? parseInt(match[1], 10) : Infinity;
 };
 
-// ✅ Fetch & Sort PPTs from S3
+// ✅ Fetch & Sort PPTs from S3 (Ensures direct download)
 router.get("/ppts", async (req, res) => {
     try {
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
         const data = await s3.listObjectsV2(params).promise();
 
         if (!data.Contents || data.Contents.length === 0) {
+            console.log("⚠ No PPTs found in S3.");
             return res.json({ ppts: [], message: "No PPTs found in S3 bucket" });
         }
 
@@ -48,10 +49,12 @@ router.get("/ppts", async (req, res) => {
                 url: s3.getSignedUrl("getObject", { 
                     Bucket: S3_BUCKET_NAME, 
                     Key: file.Key, 
-                    Expires: 21600 // Signed URL expires in 6 hours
+                    Expires: 21600, // Signed URL expires in 6 hours
+                    ResponseContentDisposition: `attachment; filename="${file.Key.replace("ppts/", "")}"` // Force download
                 })
             }));
 
+        console.log(`✅ Retrieved ${ppts.length} PPT files.`);
         res.json({ ppts });
     } catch (error) {
         console.error("❌ Error fetching PPTs:", error);
@@ -59,13 +62,14 @@ router.get("/ppts", async (req, res) => {
     }
 });
 
-// ✅ Fetch & Sort Field Trip Photos from S3
+// ✅ Fetch & Sort Field Trip Photos from S3 (Ensures direct download)
 router.get("/field-trip-photos", async (req, res) => {
     try {
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "field-trip-photos/" };
         const data = await s3.listObjectsV2(params).promise();
 
         if (!data.Contents || data.Contents.length === 0) {
+            console.log("⚠ No Field Trip Photos found in S3.");
             return res.json({ photos: [], message: "No Field Trip Photos found in S3 bucket" });
         }
 
@@ -77,10 +81,12 @@ router.get("/field-trip-photos", async (req, res) => {
                 url: s3.getSignedUrl("getObject", { 
                     Bucket: S3_BUCKET_NAME, 
                     Key: file.Key, 
-                    Expires: 21600 // Signed URL expires in 6 hours
+                    Expires: 21600, // Signed URL expires in 6 hours
+                    ResponseContentDisposition: `attachment; filename="${file.Key.replace("field-trip-photos/", "")}"` // Force download
                 })
             }));
 
+        console.log(`✅ Retrieved ${photos.length} field trip photos.`);
         res.json({ photos });
     } catch (error) {
         console.error("❌ Error fetching Field Trip Photos:", error);
