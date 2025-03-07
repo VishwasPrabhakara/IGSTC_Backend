@@ -1,9 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const AWS = require("aws-sdk");
+
 const router = express.Router();
 
-// Enable CORS
+// Enable CORS for all routes
 router.use(cors());
 
 // AWS S3 Configuration
@@ -15,11 +16,17 @@ const s3 = new AWS.S3({
 
 const S3_BUCKET_NAME = "conference-file-storage"; // Your actual S3 bucket name
 
+// ✅ Middleware to set CORS headers
+router.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*"); 
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    next();
+});
+
 // ✅ Fetch & Sort PPTs from S3
 router.get("/ppts", async (req, res) => {
     try {
-        res.setHeader("Access-Control-Allow-Origin", "*"); // Enable CORS for frontend access
-
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "ppts/" };
         const data = await s3.listObjectsV2(params).promise();
 
@@ -55,8 +62,6 @@ router.get("/ppts", async (req, res) => {
 // ✅ Fetch & Sort Field Trip Photos from S3
 router.get("/field-trip-photos", async (req, res) => {
     try {
-        res.setHeader("Access-Control-Allow-Origin", "*"); // Enable CORS for frontend access
-
         const params = { Bucket: S3_BUCKET_NAME, Prefix: "field-trip-photos/" };
         const data = await s3.listObjectsV2(params).promise();
 
@@ -82,6 +87,11 @@ router.get("/field-trip-photos", async (req, res) => {
         console.error("❌ Error fetching Field Trip Photos:", error);
         res.status(500).json({ error: "Failed to retrieve Field Trip Photos" });
     }
+});
+
+// ✅ Handle preflight requests for CORS
+router.options("*", (req, res) => {
+    res.sendStatus(200);
 });
 
 module.exports = router;
